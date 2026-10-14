@@ -71,15 +71,14 @@
 
       <article class="release is-latest">
         <div class="release-head">
-            <h3 class="release-ver">v3.4.2</h3>
-            <span class="release-date">2026.10.14</span>
-            <span class="release-tag is-latest">Latest</span>
+          <h3 class="release-ver">v3.4.2</h3>
+          <span class="release-date">2026.10.14</span>
+          <span class="release-tag is-latest">Latest</span>
         </div>
         <ul class="release-list">
-            <li><span class="kind">Build</span> macOS builds for both Intel and Apple Silicon.</li>
-            <li><span class="kind">Build</span> Windows 64-bit executable published via PyInstaller.</li>
-            <li><span class="kind">Build</span> Linux x86_64 AppImage published.</li>
-            <li><span class="kind">Build</span> <code>SHA-256SUMS</code> file attached to every release.</li>
+          <li><span class="kind">Build</span> First release with pre-built binaries for Windows 10+, macOS Intel and Apple Silicon, and Linux x86_64.</li>
+          <li><span class="kind">Build</span> Added the Windows executable, two macOS ZIPs, and Linux AppImage.</li>
+          <li><span class="kind">Verify</span> Added <code>SHA-256SUMS</code> to verify downloaded files.</li>
         </ul>
       </article>
 
@@ -89,10 +88,11 @@
           <span class="release-date">2026.10.13</span>
         </div>
         <ul class="release-list">
-          <li><span class="kind perf">Perf</span> Fog curve rewritten; 12% fewer draw calls per frame.</li>
-          <li><span class="kind">Render</span> Depth sort now uses face centroid instead of vertex average.</li>
-          <li><span class="kind fix">Fix</span> Near-plane clipping no longer leaks a stray vertex at low framerates.</li>
-          <li><span class="kind docs">Docs</span> README rewritten with a pipeline diagram.</li>
+          <li><span class="kind fix">Fix</span> Clamped sky projection at extreme camera pitch to prevent full-screen flashes.</li>
+          <li><span class="kind fix">Fix</span> Capped ground subdivision and tightened its distance and area thresholds.</li>
+          <li><span class="kind">Render</span> Culls off-screen polygons before sorting and drawing.</li>
+          <li><span class="kind perf">Perf</span> Caches scaled blob shadows and reuses gradients at native render scale.</li>
+          <li><span class="kind">Render</span> Corrected bloom to use a bright-pass and reduced distant outline passes.</li>
         </ul>
       </article>
 
@@ -102,10 +102,10 @@
           <span class="release-date">2026.07.19</span>
         </div>
         <ul class="release-list">
-          <li><span class="kind">Game</span> New arena: Warehouse 9.</li>
-          <li><span class="kind">Game</span> Three weapons, each with distinct recoil profiles.</li>
-          <li><span class="kind">Game</span> Sprint and jump reworked for higher momentum.</li>
-          <li><span class="kind perf">Perf</span> Polygon budget raised to 2600 faces per frame on desktop.</li>
+          <li><span class="kind">Added</span> Borderless fullscreen toggled with <kbd>F11</kbd>.</li>
+          <li><span class="kind">Added</span> Fullscreen setting persists and is applied at startup.</li>
+          <li><span class="kind fix">Fix</span> Pistol and shotgun now fire correctly on click.</li>
+          <li><span class="kind">Changed</span> Centralized the game version in a <code>VERSION</code> constant.</li>
         </ul>
       </article>
 
@@ -115,8 +115,19 @@
           <span class="release-date">2026.06.04</span>
         </div>
         <ul class="release-list">
-          <li><span class="kind fix">Fix</span> macOS build no longer crashes on launch under Rosetta.</li>
-          <li><span class="kind perf">Perf</span> Backface culling uses a pre-computed normal cache.</li>
+          <li><span class="kind fix">Fix</span> Uses consistent default font rendering across platforms.</li>
+          <li><span class="kind fix">Fix</span> Removed the overly dark double vignette.</li>
+          <li><span class="kind">Render</span> Bloom switched to a bright-pass implementation.</li>
+        </ul>
+      </article>
+
+      <article class="release">
+        <div class="release-head">
+          <h3 class="release-ver">v3.3.1</h3>
+        </div>
+        <ul class="release-list">
+          <li><span class="kind fix">Fix</span> Reallocates render surfaces when a new run resets render scale.</li>
+          <li><span class="kind fix">Fix</span> Implements the previously ignored <code>glow</code> flag in geometry emission.</li>
         </ul>
       </article>
 
@@ -126,9 +137,9 @@
           <span class="release-date">2026.04.22</span>
         </div>
         <ul class="release-list">
-          <li><span class="kind">Themes</span> Toxic theme retextured end to end.</li>
-          <li><span class="kind">Themes</span> Light direction now configurable per theme.</li>
-          <li><span class="kind">Render</span> Fog gain and offset moved into the theme definition.</li>
+          <li><span class="kind fix">Fix</span> Polygon budget now keeps the closest polygons.</li>
+          <li><span class="kind fix">Fix</span> Ground bounds use floor and ceiling correctly; near-plane distance and screen-coordinate clamping prevent close-up texture warping and runaway polygons.</li>
+          <li><span class="kind perf">Perf</span> Adaptive render scale changes in steps instead of oscillating every frame.</li>
         </ul>
       </article>
 
@@ -138,21 +149,10 @@
           <span class="release-date">2026.02.11</span>
         </div>
         <ul class="release-list">
-          <li><span class="kind">Render</span> Near-plane clipping now runs on the quad, not the triangle.</li>
-          <li><span class="kind">Render</span> Perspective divide batched into a single list comprehension.</li>
-          <li><span class="kind fix">Fix</span> Offscreen faces are no longer sorted.</li>
-        </ul>
-      </article>
-
-      <article class="release">
-        <div class="release-head">
-          <h3 class="release-ver">v3.1.0</h3>
-          <span class="release-date">2025.12.03</span>
-        </div>
-        <ul class="release-list">
-          <li><span class="kind">Game</span> New weapon: the Repeater.</li>
-          <li><span class="kind">Game</span> Ammo pickups.</li>
-          <li><span class="kind">Themes</span> Arctic theme added.</li>
+          <li><span class="kind">Added</span> Adaptive render scale and polygon budget driven by a rolling frame average.</li>
+          <li><span class="kind">Added</span> Distance fog, bright-pass bloom, color grading, vignette, scanlines, and damage effects.</li>
+          <li><span class="kind">Added</span> Five themes, three weapons, four enemy types, boss waves, and three game modes.</li>
+          <li><span class="kind">Added</span> Four difficulty settings, achievements, combo scoring, kill feed, and damage direction indicator.</li>
         </ul>
       </article>
 
@@ -162,13 +162,10 @@
           <span class="release-date">2025.10.18</span>
         </div>
         <ul class="release-list">
-          <li><span class="kind">Render</span> Full pipeline rewrite — the renderer is now the code path it uses today.</li>
-          <li><span class="kind">Render</span> Directional lighting replaces the flat shade.</li>
-          <li><span class="kind">Render</span> Distance fog added.</li>
-          <li><span class="kind">Themes</span> Industrial and Void themes.</li>
+          <li><span class="kind">Render</span> Introduced the custom software-rendering pipeline: camera transform, near clipping, perspective projection, backface culling, texture sampling, and depth sorting.</li>
+          <li><span class="kind">Game</span> Added the ground grid, crates, pillars, billboard particles, basic enemy AI, and survival waves.</li>
         </ul>
       </article>
-
     </div>
   </div>
 </section>

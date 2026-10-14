@@ -100,17 +100,27 @@ pip install -r requirements.txt</code></pre>
       <h2>Running the game</h2>
       <pre><code>python vexpoly.py</code></pre>
       <p>
-        On first launch the game will create a config directory next to the
-        script. Settings, key bindings, and the active theme are stored there
-        as plain text.
+        Settings and progression records are saved as
+        <code>vexpoly_save.json</code> in your per-user data directory:
+      </p>
+      <ul>
+        <li><strong>Windows:</strong> <code>%LOCALAPPDATA%\VEXPOLY\vexpoly_save.json</code></li>
+        <li><strong>macOS:</strong> <code>~/Library/Application Support/VEXPOLY/vexpoly_save.json</code></li>
+        <li><strong>Linux:</strong> <code>$XDG_DATA_HOME/vexpoly/vexpoly_save.json</code> when <code>XDG_DATA_HOME</code> is an absolute path; otherwise <code>~/.local/share/vexpoly/vexpoly_save.json</code>.</li>
+      </ul>
+      <p>
+        If a newer settings file does not exist, VEXPOLY checks for the legacy
+        <code>vexpoly_save.json</code> beside the source or bundled application
+        and migrates it by saving a copy to the user data directory. Settings
+        are not stored in a configurable key-binding file.
       </p>
     </section>
 
     <section id="controls" data-reveal>
       <h2>Controls</h2>
       <p>
-        Keyboard and mouse. That's the whole scheme. Every binding can be
-        changed in the config file.
+        These are the current default controls. Key bindings are fixed in the
+        current version; configurable key rebinding is not implemented.
       </p>
       <table class="controls-table">
         <thead>
@@ -120,31 +130,53 @@ pip install -r requirements.txt</code></pre>
           <tr><td>Move</td><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></td></tr>
           <tr><td>Sprint</td><td><kbd>Shift</kbd></td></tr>
           <tr><td>Jump</td><td><kbd>Space</kbd></td></tr>
-          <tr><td>Fire</td><td><kbd>LMB</kbd></td></tr>
-          <tr><td>Reload</td><td><kbd>R</kbd></td></tr>
-          <tr><td>Weapons</td><td><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd></td></tr>
-          <tr><td>Cycle weapon</td><td><kbd>Q</kbd><kbd>E</kbd></td></tr>
+          <tr><td>Look around</td><td>Mouse</td></tr>
+          <tr><td>Fire</td><td>Left mouse button</td></tr>
+          <tr><td>Reload</td><td><kbd>R</kbd> or right mouse button</td></tr>
+          <tr><td>Select pistol / rifle / shotgun</td><td><kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd></td></tr>
+          <tr><td>Cycle weapon</td><td><kbd>Q</kbd> / <kbd>E</kbd></td></tr>
           <tr><td>Pause</td><td><kbd>Esc</kbd></td></tr>
+          <tr><td>Toggle mouse capture</td><td><kbd>F</kbd></td></tr>
           <tr><td>Toggle fullscreen</td><td><kbd>F11</kbd></td></tr>
-          <tr><td>Release mouse</td><td><kbd>F</kbd></td></tr>
+        </tbody>
+      </table>
+      <h3>Menu navigation</h3>
+      <table class="controls-table">
+        <thead><tr><th>Action</th><th>Binding</th></tr></thead>
+        <tbody>
+          <tr><td>Navigate</td><td><kbd>↑</kbd> / <kbd>↓</kbd> or <kbd>W</kbd> / <kbd>S</kbd></td></tr>
+          <tr><td>Adjust a setting</td><td><kbd>←</kbd> / <kbd>→</kbd> or <kbd>A</kbd> / <kbd>D</kbd></td></tr>
+          <tr><td>Confirm</td><td><kbd>Enter</kbd> or <kbd>Space</kbd></td></tr>
+          <tr><td>Go back</td><td><kbd>Esc</kbd></td></tr>
         </tbody>
       </table>
     </section>
 
     <section id="structure" data-reveal>
       <h2>Project structure</h2>
-      <p>The repository is intentionally flat. Three things matter:</p>
-      <pre><code>vexpoly/
-├── vexpoly.py           # the entire game — engine + gameplay
-├── requirements.txt     # pygame-ce
-├── assets/
-│   ├── textures/        # one folder per theme
-│   ├── sounds/          # footsteps, weapons, ambience
-│   └── ui/              # crosshairs, HUD elements
-└── config/              # created on first run</code></pre>
       <p>
-        The renderer lives at the top of <code>vexpoly.py</code>. Gameplay
-        code follows below, then the main loop.
+        The game is currently a single-file Python application with bundled
+        runtime assets and a small test suite:
+      </p>
+      <pre><code>vexpoly/
+├── vexpoly.py             # renderer, gameplay, UI, and audio
+├── requirements.txt       # pygame-ce dependency
+├── pyproject.toml         # package metadata and asset installation
+├── vexpoly.spec           # PyInstaller release build
+├── README.md
+├── CHANGELOG.md
+├── tests/
+├── .github/workflows/     # CI and release automation
+└── assets/
+    ├── textures/
+    │   ├── _shared/
+    │   └── &lt;theme&gt;/
+    ├── sounds/
+    └── ui/</code></pre>
+      <p>
+        The writable save file is kept outside the repository in the
+        per-user data directory described above. Older saves found beside
+        the application are migrated on load.
       </p>
     </section>
 
@@ -267,8 +299,15 @@ sudo dnf install fuse-libs         # Fedora</code></pre>
 
       <h3>Low framerate</h3>
       <p>
-        Lower the polygon budget in the config file. Anything above 1200 faces
-        per frame will struggle on older hardware.
+        Open the in-game Settings menu and make sure <strong>ADAPTIVE RES</strong>
+        is enabled. VEXPOLY adjusts render scale and its polygon budget
+        automatically; the configured budget is 1,800 polygons, with adaptive
+        limits from 900 to 4,000. There is no user-editable config file for
+        changing the polygon budget.
+      </p>
+      <p>
+        If performance is still poor, close other demanding applications and
+        try running the game in a smaller window.
       </p>
 
       <h3>Sound is distorted on Linux</h3>

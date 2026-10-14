@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docs — VEXPOLY</title>
+<meta name="description" content="Install VEXPOLY, learn the controls, and read notes on how the software renderer works.">
+<meta name="theme-color" content="#0A0A0C">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://rsms.me/">
+<link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+<link rel="stylesheet" href="style.css">
+<noscript><style>[data-reveal]{opacity:1!important;transform:none!important}</style></noscript>
+</head>
+<body id="top">
+
+<a class="skip" href="#main">Skip to content</a>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="bar">
+  <div class="bar-inner">
+    <a href="index.html" class="mark" aria-label="VEXPOLY — home">
+      <svg viewBox="0 0 100 100" width="22" height="22" aria-hidden="true">
+        <polygon points="50,8 8,68 50,52" fill="currentColor"/>
+        <polygon points="50,8 50,52 92,68" fill="currentColor" opacity="0.7"/>
+        <polygon points="8,68 50,92 50,52" fill="currentColor" opacity="0.4"/>
+        <polygon points="50,52 92,68 50,92" fill="currentColor" opacity="0.2"/>
+      </svg>
+      <span>VEXPOLY</span>
+    </a>
+
+    <nav class="nav" id="siteNav" aria-label="Sections">
+      <a href="index.html">Home</a>
+      <a href="download.html">Download</a>
+      <a href="docs.html" class="active">Docs</a>
+      <a href="changelog.html">Changelog</a>
+    </nav>
+
+    <div class="bar-actions">
+      <a class="pill pill-ghost" href="https://github.com/dranimalis/vexpoly" target="_blank" rel="noopener">
+        GitHub <span aria-hidden="true">↗</span>
+      </a>
+      <a class="pill pill-solid" href="download.html">Download</a>
+      <button class="menu" id="menuBtn" type="button"
+              aria-expanded="false" aria-controls="siteNav" aria-label="Open menu">
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+<section class="page-head">
+  <div class="wrap-narrow">
+    <p class="eyebrow" data-reveal>
+      <span class="dot" aria-hidden="true"></span>Docs
+    </p>
+    <h1 class="display" data-reveal>Getting started.</h1>
+    <p class="section-lede" data-reveal>
+      Everything you need to install, run, and understand VEXPOLY.
+    </p>
+  </div>
+</section>
+
+<div class="docs-layout">
+  <aside class="docs-nav" aria-label="On this page">
+    <h4>On this page</h4>
+    <a href="#install">Install</a>
+    <a href="#running">Running the game</a>
+    <a href="#controls">Controls</a>
+    <a href="#structure">Project structure</a>
+    <a href="#renderer">How the renderer works</a>
+    <a href="#themes">Themes</a>
+    <a href="#trouble">Troubleshooting</a>
+  </aside>
+
+  <div class="docs-content">
+
+    <section id="install" data-reveal>
+      <h2>Install</h2>
+      <p>
+        The recommended way to play is a pre-built binary from the
+        <a href="download.html">download page</a> — no Python install needed.
+        If you'd rather run from source, you'll need Python 3.9 or newer.
+      </p>
+      <pre><code>git clone https://github.com/dranimalis/vexpoly.git
+cd vexpoly
+python3 -m venv .venv
+source .venv/bin/activate      # Windows: .venv\Scripts\activate
+pip install -r requirements.txt</code></pre>
+      <p>
+        The only hard dependency is <code>pygame-ce</code> 2.5 or newer. All
+        other modules come from the Python standard library.
+      </p>
+    </section>
+
+    <section id="running" data-reveal>
+      <h2>Running the game</h2>
+      <pre><code>python vexpoly.py</code></pre>
+      <p>
+        On first launch the game will create a config directory next to the
+        script. Settings, key bindings, and the active theme are stored there
+        as plain text.
+      </p>
+    </section>
+
+    <section id="controls" data-reveal>
+      <h2>Controls</h2>
+      <p>
+        Keyboard and mouse. That's the whole scheme. Every binding can be
+        changed in the config file.
+      </p>
+      <table class="controls-table">
+        <thead>
+          <tr><th>Action</th><th>Binding</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Move</td><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></td></tr>
+          <tr><td>Sprint</td><td><kbd>Shift</kbd></td></tr>
+          <tr><td>Jump</td><td><kbd>Space</kbd></td></tr>
+          <tr><td>Fire</td><td><kbd>LMB</kbd></td></tr>
+          <tr><td>Reload</td><td><kbd>R</kbd></td></tr>
+          <tr><td>Weapons</td><td><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd></td></tr>
+          <tr><td>Cycle weapon</td><td><kbd>Q</kbd><kbd>E</kbd></td></tr>
+          <tr><td>Pause</td><td><kbd>Esc</kbd></td></tr>
+          <tr><td>Toggle fullscreen</td><td><kbd>F11</kbd></td></tr>
+          <tr><td>Release mouse</td><td><kbd>F</kbd></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="structure" data-reveal>
+      <h2>Project structure</h2>
+      <p>The repository is intentionally flat. Three things matter:</p>
+      <pre><code>vexpoly/
+├── vexpoly.py           # the entire game — engine + gameplay
+├── requirements.txt     # pygame-ce
+├── assets/
+│   ├── textures/        # one folder per theme
+│   ├── sounds/          # footsteps, weapons, ambience
+│   └── ui/              # crosshairs, HUD elements
+└── config/              # created on first run</code></pre>
+      <p>
+        The renderer lives at the top of <code>vexpoly.py</code>. Gameplay
+        code follows below, then the main loop.
+      </p>
+    </section>
+
+    <section id="renderer" data-reveal>
+      <h2>How the renderer works</h2>
+      <p>
+        Every frame walks the same eight stages. Nothing is handed to a GPU.
+      </p>
+
+      <h3>1. Camera transform</h3>
+      <p>
+        Each world vertex is translated into view space using the camera's yaw
+        and pitch. The result is a coordinate relative to the camera.
+      </p>
+
+      <h3>2. Near-plane clipping</h3>
+      <p>
+        Polygons that cross <code>z = near</code> are cut against the plane
+        before projection. Without this step, faces flip inside out when they
+        pass behind the camera.
+      </p>
+
+      <h3>3. Perspective projection</h3>
+      <p>
+        A single divide by camera-space depth turns each vertex into a screen
+        coordinate.
+      </p>
+
+      <h3>4. Backface and frustum culling</h3>
+      <p>
+        Faces pointing away from the camera are dropped early. So are faces
+        entirely outside the view rectangle.
+      </p>
+
+      <h3>5. Directional lighting</h3>
+      <p>
+        One fixed light vector. One dot product per face. A flat Lambertian
+        shade, no specular.
+      </p>
+
+      <h3>6. Distance fog</h3>
+      <p>
+        Camera-space depth feeds a simple exponential curve that fades each
+        face toward the sky colour.
+      </p>
+
+      <h3>7. Depth sort</h3>
+      <p>
+        Visible faces are sorted by average camera-space depth, back to front.
+        This is painter's algorithm — cheap and correct enough for the scale
+        the game plays at.
+      </p>
+
+      <h3>8. Draw</h3>
+      <p>
+        Each face becomes one call to <code>pygame.draw.polygon</code>. That's
+        the entire draw path.
+      </p>
+    </section>
+
+    <section id="themes" data-reveal>
+      <h2>Themes</h2>
+      <p>
+        A theme in VEXPOLY is not a tint. It swaps:
+      </p>
+      <ul>
+        <li>The sky gradient</li>
+        <li>The fog colour and curve</li>
+        <li>The light direction</li>
+        <li>The colour grade applied to lit faces</li>
+        <li>The entire texture set</li>
+      </ul>
+      <p>
+        Five themes ship with the game: Industrial, Void, Crimson, Arctic,
+        and Toxic. You can preview each one on the
+        <a href="index.html#preview">homepage</a>.
+      </p>
+    </section>
+
+    <section id="trouble" data-reveal>
+      <h2>Troubleshooting</h2>
+
+      <h3>macOS says VEXPOLY can't be opened</h3>
+      <p>
+        The macOS builds are unsigned, so Gatekeeper blocks them on first
+        launch. To allow the app, open
+        <em>System Settings → Privacy &amp; Security</em>, scroll down to the
+        "VEXPOLY was blocked" notice, and click <em>Open Anyway</em>.
+      </p>
+      <p>Or remove the quarantine flag directly in Terminal:</p>
+      <pre><code>xattr -dr com.apple.quarantine /Applications/VEXPOLY.app</code></pre>
+      <p>
+        You only need to do this once. After that the app opens normally.
+      </p>
+
+      <h3>Windows SmartScreen blocks the .exe</h3>
+      <p>
+        The Windows build is unsigned. On first launch SmartScreen shows a
+        "Windows protected your PC" dialog. Click <em>More info</em>, then
+        <em>Run anyway</em>.
+      </p>
+
+      <h3>The window opens but nothing renders</h3>
+      <p>
+        You're likely running an old <code>pygame</code> instead of
+        <code>pygame-ce</code>. Uninstall the former, then install the latter:
+      </p>
+      <pre><code>pip uninstall pygame
+pip install pygame-ce</code></pre>
+
+      <h3>Linux AppImage won't start</h3>
+      <p>
+        If you get a FUSE error, either install <code>libfuse2</code>:
+      </p>
+      <pre><code>sudo apt install libfuse2          # Debian / Ubuntu
+sudo dnf install fuse-libs         # Fedora</code></pre>
+      <p>Or extract the AppImage instead of mounting it:</p>
+      <pre><code>./vexpoly-x86_64.AppImage --appimage-extract
+./squashfs-root/AppRun</code></pre>
+
+      <h3>Low framerate</h3>
+      <p>
+        Lower the polygon budget in the config file. Anything above 1200 faces
+        per frame will struggle on older hardware.
+      </p>
+
+      <h3>Sound is distorted on Linux</h3>
+      <p>
+        Set the SDL audio driver to <code>pulseaudio</code> before launching:
+      </p>
+      <pre><code>SDL_AUDIODRIVER=pulseaudio python vexpoly.py</code></pre>
+    </section>
+
+  </div>
+</div>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="index.html" class="mark" aria-label="VEXPOLY">
+          <svg viewBox="0 0 100 100" width="24" height="24" aria-hidden="true">
+            <polygon points="50,8 8,68 50,52" fill="currentColor"/>
+            <polygon points="50,8 50,52 92,68" fill="currentColor" opacity="0.7"/>
+            <polygon points="8,68 50,92 50,52" fill="currentColor" opacity="0.4"/>
+            <polygon points="50,52 92,68 50,92" fill="currentColor" opacity="0.2"/>
+          </svg>
+          <span>VEXPOLY</span>
+        </a>
+        <p class="foot-note">
+          A first-person arena shooter written in Python. Built with pygame-ce.
+        </p>
+      </div>
+
+      <nav class="foot-col" aria-label="Site">
+        <h4>Site</h4>
+        <a href="index.html">Home</a>
+        <a href="download.html">Download</a>
+        <a href="docs.html">Docs</a>
+        <a href="changelog.html">Changelog</a>
+      </nav>
+
+      <nav class="foot-col" aria-label="Project">
+        <h4>Project</h4>
+        <a href="https://github.com/dranimalis/vexpoly" target="_blank" rel="noopener">Source</a>
+        <a href="https://github.com/dranimalis/vexpoly/blob/main/ROADMAP.md" target="_blank" rel="noopener">Roadmap</a>
+        <a href="https://github.com/dranimalis/vexpoly/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">Contributing</a>
+        <a href="https://github.com/dranimalis/vexpoly/issues" target="_blank" rel="noopener">Report a bug</a>
+      </nav>
+
+      <nav class="foot-col" aria-label="Support">
+        <h4>Support</h4>
+        <a href="https://sociabuzz.com/dr_animalis/give" target="_blank" rel="noopener">Sociabuzz</a>
+        <a href="https://github.com/dranimalis/vexpoly" target="_blank" rel="noopener">Star the repo</a>
+        <a href="https://github.com/dranimalis/vexpoly/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
+      </nav>
+    </div>
+
+    <div class="foot-bottom">
+      <span>© <span id="year">2026</span> VEXPOLY. MIT licensed.</span>
+      <span class="foot-bottom-right">
+        <a class="totop" href="#top">Back to top ↑</a>
+        <span class="ver">v3.4.2</span>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

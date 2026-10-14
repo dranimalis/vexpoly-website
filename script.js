@@ -1,14 +1,14 @@
 /* =========================================================================
-   VEXPOLY — nav, progress, reveal, counters, theme, 3D scene
+   VEXPOLY — shared site script
+   Works on any page. Features auto-enable based on what's in the DOM.
    ========================================================================= */
 
 (function () {
   'use strict';
 
-  const root = document.documentElement;
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* =========================================================== nav ==== */
+  /* ============================================================ nav ==== */
 
   const menuBtn = document.getElementById('menuBtn');
   const siteNav = document.getElementById('siteNav');
@@ -36,14 +36,51 @@
     });
   }
 
+/* ================================================= platform detect == */
+
+(function detectPlatform() {
+  const ua = navigator.userAgent || '';
+
+  const platform =
+    /Mac|iPhone|iPad|iPod/i.test(ua) ? 'macos'   :
+    /Win/i.test(ua)                  ? 'windows' :
+    /Linux|X11|CrOS/i.test(ua)       ? 'linux'   :
+    null;
+
+  if (!platform) return;
+
+  const card = document.querySelector(`.dl-card[data-os="${platform}"]:not(.is-soon)`);
+  if (!card) return;
+
+  card.classList.add('is-match');
+
+  // macOS: Intel or Apple Silicon?
+  // WebKit's userAgent says "Intel" even on Apple Silicon under Rosetta,
+  // so fall back to the WebGL renderer string, which reports "Apple M…".
+  if (platform === 'macos') {
+    const isARM =
+      /ARM|Apple/i.test(navigator.platform || '') ||
+      /Apple M\d/i.test(ua) ||
+      (() => {
+        try {
+          const gl = document.createElement('canvas').getContext('webgl');
+          const ext = gl && gl.getExtension('WEBGL_debug_renderer_info');
+          if (!ext) return false;
+          const r = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) || '';
+          return /Apple M\d/i.test(r);
+        } catch (_) { return false; }
+      })();
+
+    card.classList.add(isARM ? 'is-apple-silicon' : 'is-intel');
+  }
+})();
+
   /* ======================================================== copy ====== */
 
-  const copyBtn   = document.getElementById('copyInstall');
-  const copyBlock = document.getElementById('install');
-
-  if (copyBtn && copyBlock) {
-    copyBtn.addEventListener('click', async () => {
-      const codeEl = copyBlock.querySelector('code');
+  document.querySelectorAll('.copy').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const scope = btn.closest('.install') || document;
+      const codeEl = scope.querySelector('code');
       const text = codeEl ? codeEl.innerText.replace(/\u00a0/g, ' ').trim() : '';
       if (!text) return;
 
@@ -61,53 +98,16 @@
         document.body.removeChild(ta);
       }
 
-      const label = copyBtn.querySelector('.copy-text');
-      const original = label ? label.textContent : copyBtn.textContent;
-      if (label) label.textContent = 'copied'; else copyBtn.textContent = 'copied';
-      copyBtn.classList.add('done');
+      const label = btn.querySelector('.copy-text') || btn;
+      const original = label.textContent;
+      label.textContent = 'copied';
+      btn.classList.add('done');
       setTimeout(() => {
-        if (label) label.textContent = original; else copyBtn.textContent = original;
-        copyBtn.classList.remove('done');
+        label.textContent = original;
+        btn.classList.remove('done');
       }, 1500);
     });
-  }
-
-  /* ================================================ scroll progress === */
-
-  const bar = document.getElementById('progressBar');
-  if (bar) {
-    let ticking = false;
-    const update = () => {
-      const h = document.documentElement;
-      const max = h.scrollHeight - h.clientHeight;
-      const p = max > 0 ? (h.scrollTop || window.scrollY) / max : 0;
-      bar.style.width = (p * 100).toFixed(2) + '%';
-      ticking = false;
-    };
-    window.addEventListener('scroll', () => {
-      if (!ticking) { requestAnimationFrame(update); ticking = true; }
-    }, { passive: true });
-    update();
-  }
-
-  /* ============================================== scroll spy (nav) === */
-
-  const navLinks = siteNav ? siteNav.querySelectorAll('a[data-nav]') : [];
-  if (navLinks.length && 'IntersectionObserver' in window) {
-    const sections = [...navLinks]
-      .map(a => document.getElementById(a.dataset.nav))
-      .filter(Boolean);
-
-    const spy = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          navLinks.forEach(a => a.classList.toggle('active', a.dataset.nav === entry.target.id));
-        }
-      });
-    }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
-
-    sections.forEach(s => spy.observe(s));
-  }
+  });
 
   /* ================================================== scroll reveal === */
 
@@ -120,7 +120,7 @@
           io.unobserve(entry.target);
         }
       });
-    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.06 });
     revealEls.forEach((el) => io.observe(el));
   } else {
     revealEls.forEach((el) => el.classList.add('in'));
@@ -136,7 +136,6 @@
       const duration = 1400;
       const start = performance.now();
       const fmt = (n) => n.toLocaleString('en-US');
-
       const step = (now) => {
         const t = Math.min(1, (now - start) / duration);
         const eased = 1 - Math.pow(1 - t, 3);
@@ -157,39 +156,27 @@
     statEls.forEach((el) => statsIO.observe(el));
   }
 
-  /* ====================================================== themes ==== */
+  /* ============================================ docs scroll spy ===== */
 
-  const THEMES = {
-    industrial: { accent: '#8EF4FF', bg: '#0A0A0B' },
-    void:       { accent: '#C99BFF', bg: '#0B0813' },
-    crimson:    { accent: '#FF7B7B', bg: '#100709' },
-    arctic:     { accent: '#BFE7FF', bg: '#080D12' },
-    toxic:      { accent: '#A8FF6E', bg: '#080F0A' }
-  };
+  const docsNavLinks = document.querySelectorAll('.docs-nav a[href^="#"]');
+  if (docsNavLinks.length && 'IntersectionObserver' in window) {
+    const targets = [...docsNavLinks]
+      .map(a => document.getElementById(a.getAttribute('href').slice(1)))
+      .filter(Boolean);
 
-  let currentAccent = THEMES.industrial.accent;
+    const spy = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          docsNavLinks.forEach(a => {
+            const match = a.getAttribute('href') === '#' + entry.target.id;
+            a.classList.toggle('active', match);
+          });
+        }
+      });
+    }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
 
-  const themeButtons = document.querySelectorAll('.theme');
-  const meta = document.querySelector('meta[name="theme-color"]');
-
-  themeButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      themeButtons.forEach((b) => b.setAttribute('aria-pressed', 'false'));
-      btn.setAttribute('aria-pressed', 'true');
-
-      const name = btn.dataset.theme;
-      const t = THEMES[name] || THEMES.industrial;
-      currentAccent = t.accent;
-
-      root.setAttribute('data-theme', name);
-      root.style.setProperty('--accent', t.accent);
-      root.style.setProperty('--bg', t.bg);
-      if (meta) meta.setAttribute('content', t.bg);
-
-      // Update the cube preview colour immediately for the scene.
-      if (window.__vexpolyScene) window.__vexpolyScene.setAccent(t.accent);
-    });
-  });
+    targets.forEach(t => spy.observe(t));
+  }
 
   /* ========================================================= year === */
 
@@ -209,7 +196,6 @@
   canvas.height = H * DPR;
   ctx.scale(DPR, DPR);
 
-  // ---------- math helpers ----------
   const sub   = (a, b) => [a[0]-b[0], a[1]-b[1], a[2]-b[2]];
   const cross = (a, b) => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
   const dot   = (a, b) => a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
@@ -217,7 +203,6 @@
   const rotX  = (v, a) => { const c = Math.cos(a), s = Math.sin(a); return [v[0], v[1]*c - v[2]*s, v[1]*s + v[2]*c]; };
   const rotY  = (v, a) => { const c = Math.cos(a), s = Math.sin(a); return [v[0]*c + v[2]*s, v[1], -v[0]*s + v[2]*c]; };
 
-  // ---------- object definitions ----------
   const cubeVerts = [
     [-1,-1,-1], [ 1,-1,-1], [ 1, 1,-1], [-1, 1,-1],
     [-1,-1, 1], [ 1,-1, 1], [ 1, 1, 1], [-1, 1, 1]
@@ -225,7 +210,6 @@
   const cubeFaces = [
     [4,5,6,7], [1,0,3,2], [5,1,2,6], [0,4,7,3], [7,6,2,3], [0,1,5,4]
   ];
-
   const octaVerts = [
     [0, 1.1, 0], [ 1.1, 0, 0], [0, 0, 1.1], [-1.1, 0, 0], [0, 0,-1.1], [0,-1.1, 0]
   ];
@@ -233,7 +217,6 @@
     [0,2,1], [0,3,2], [0,4,3], [0,1,4],
     [5,1,2], [5,2,3], [5,3,4], [5,4,1]
   ];
-
   const pyrVerts = [
     [-1,-1,-1], [ 1,-1,-1], [ 1,-1, 1], [-1,-1, 1], [0, 1.15, 0]
   ];
@@ -247,16 +230,20 @@
     { verts: pyrVerts,  faces: pyrFaces,  pos: [ 2.4, -0.15, 0], scale: 0.80, spin: { x: 0.24, y: 0.28 }, phase: 1.3 }
   ];
 
-  // ---------- camera ----------
   const cam = {
-    yaw: 0.35,
-    pitch: 0.22,
-    distance: 8.6,
-    target: [0, -0.15, 0],
-    fov: 640,
-    autorotate: !reduceMotion,
-    wireframe: false
+    yaw: 0.35, pitch: 0.22, distance: 8.6,
+    target: [0, -0.15, 0], fov: 640,
+    autorotate: false, wireframe: false
   };
+
+  const THEMES = {
+    industrial: '#7DD3FC',
+    void:       '#C4B5FD',
+    crimson:    '#FB7185',
+    arctic:     '#BAE6FD',
+    toxic:      '#A3E635'
+  };
+  let accent = THEMES.industrial;
 
   const camPos = () => {
     const cp = Math.cos(cam.pitch);
@@ -307,10 +294,8 @@
     return { x: W/2 + c[0] * f, y: H/2 - c[1] * f, z: c[2] };
   };
 
-  // ---------- light ----------
   const LIGHT = norm([0.45, 0.85, -0.35]);
 
-  // ---------- state ----------
   let time = 0;
   let dragging = false;
   let lastX = 0, lastY = 0;
@@ -318,28 +303,22 @@
   let visible = true;
   let needsReset = false;
 
-  // counters
   const fpsEl   = document.getElementById('demoFps');
   const drawnEl = document.getElementById('demoDrawn');
   let lastT = performance.now();
   let fpsAcc = 0, frames = 0;
 
-  // pause when offscreen
   if ('IntersectionObserver' in window) {
     new IntersectionObserver((entries) => {
       visible = entries[0].isIntersecting;
     }, { threshold: 0 }).observe(canvas);
   }
 
-  // ---------- controls ----------
   const ctlAuto  = document.getElementById('ctlAutorotate');
   const ctlWire  = document.getElementById('ctlWire');
   const ctlReset = document.getElementById('ctlReset');
 
-  const syncCtl = (btn, on) => {
-    if (!btn) return;
-    btn.setAttribute('aria-pressed', String(on));
-  };
+  const syncCtl = (btn, on) => btn && btn.setAttribute('aria-pressed', String(on));
   syncCtl(ctlAuto, cam.autorotate);
   syncCtl(ctlWire, cam.wireframe);
 
@@ -347,42 +326,40 @@
     cam.autorotate = !cam.autorotate;
     syncCtl(ctlAuto, cam.autorotate);
   });
-
   ctlWire?.addEventListener('click', () => {
     cam.wireframe = !cam.wireframe;
     syncCtl(ctlWire, cam.wireframe);
   });
-
   ctlReset?.addEventListener('click', () => {
-    cam.yaw = 0.35;
-    cam.pitch = 0.22;
-    cam.distance = 8.6;
-    vx = 0; vy = 0;
-    needsReset = true;
+    cam.yaw = 0.35; cam.pitch = 0.22; cam.distance = 8.6;
+    vx = 0; vy = 0; needsReset = true;
   });
 
-  // drag to orbit
+  document.querySelectorAll('.theme-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.theme-btn').forEach(b => b.setAttribute('aria-pressed', 'false'));
+      btn.setAttribute('aria-pressed', 'true');
+      const name = btn.dataset.theme;
+      accent = THEMES[name] || THEMES.industrial;
+    });
+  });
+
   const onDown = (e) => {
     dragging = true;
-    lastX = e.clientX;
-    lastY = e.clientY;
+    lastX = e.clientX; lastY = e.clientY;
     canvas.setPointerCapture?.(e.pointerId);
   };
-
   const onMove = (e) => {
     if (!dragging) return;
     const dx = e.clientX - lastX;
     const dy = e.clientY - lastY;
-    lastX = e.clientX;
-    lastY = e.clientY;
-
+    lastX = e.clientX; lastY = e.clientY;
     cam.yaw   -= dx * 0.005;
     cam.pitch += dy * 0.005;
     cam.pitch = Math.max(-0.1, Math.min(1.1, cam.pitch));
     vx = -dx * 0.0004;
     vy =  dy * 0.0004;
   };
-
   const onUp = () => { dragging = false; };
 
   canvas.addEventListener('pointerdown', onDown);
@@ -390,32 +367,6 @@
   canvas.addEventListener('pointerup', onUp);
   canvas.addEventListener('pointercancel', onUp);
   canvas.addEventListener('pointerleave', onUp);
-
-  // ---------- grid ----------
-  const drawGrid = (view, accent) => {
-    const y = -1.55;
-    const range = 7;
-    const step = 1;
-
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = accent;
-    ctx.globalAlpha = 0.10;
-
-    for (let i = -range; i <= range; i += step) {
-      // lines parallel to Z
-      strokeLine(
-        toCam([i, y, -range], view),
-        toCam([i, y,  range], view)
-      );
-      // lines parallel to X
-      strokeLine(
-        toCam([-range, y, i], view),
-        toCam([ range, y, i], view)
-      );
-    }
-
-    ctx.globalAlpha = 1;
-  };
 
   const strokeLine = (a, b) => {
     const pa = project(a);
@@ -427,8 +378,18 @@
     ctx.stroke();
   };
 
-  // ---------- scene frame ----------
-  let currentAccentLocal = currentAccent;
+  const drawGrid = (view) => {
+    const y = -1.55;
+    const range = 7;
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = accent;
+    ctx.globalAlpha = 0.08;
+    for (let i = -range; i <= range; i++) {
+      strokeLine(toCam([i, y, -range], view), toCam([i, y, range], view));
+      strokeLine(toCam([-range, y, i], view), toCam([range, y, i], view));
+    }
+    ctx.globalAlpha = 1;
+  };
 
   const frame = (now) => {
     requestAnimationFrame(frame);
@@ -438,22 +399,16 @@
     lastT = now;
     time += dt;
 
-    // autorotate
-    if (!dragging && cam.autorotate && !needsReset) {
-      cam.yaw += 0.14 * dt;
-    }
+    if (!dragging && cam.autorotate && !needsReset) cam.yaw += 0.14 * dt;
     needsReset = false;
 
-    // inertia
     if (!dragging) {
       cam.yaw   += vx;
       cam.pitch += vy;
-      vx *= 0.94;
-      vy *= 0.94;
+      vx *= 0.94; vy *= 0.94;
       cam.pitch = Math.max(-0.1, Math.min(1.1, cam.pitch));
     }
 
-    // fps counter
     fpsAcc += 1 / Math.max(dt, 0.0001);
     frames++;
     if (frames >= 20) {
@@ -463,53 +418,32 @@
 
     const view = buildView();
 
-    // background
     ctx.clearRect(0, 0, W, H);
-
-    // sky gradient using accent
-    const grad = ctx.createLinearGradient(0, 0, 0, H);
-    grad.addColorStop(0, 'rgba(0,0,0,0)');
-    grad.addColorStop(0.5, 'rgba(0,0,0,0.15)');
-    grad.addColorStop(1, 'rgba(0,0,0,0.5)');
     ctx.fillStyle = '#07070A';
     ctx.fillRect(0, 0, W, H);
+    drawGrid(view);
 
-    drawGrid(view, currentAccentLocal);
-
-    // collect all faces
     const draws = [];
 
     for (const obj of OBJECTS) {
-      const cos = Math.cos(time);
       const rx = time * obj.spin.x + obj.phase;
       const ry = time * obj.spin.y + obj.phase;
 
-      // world verts
       const worldVerts = obj.verts.map(v => {
         let p = [v[0]*obj.scale, v[1]*obj.scale, v[2]*obj.scale];
         p = rotX(p, rx);
         p = rotY(p, ry);
         p = [p[0] + obj.pos[0], p[1] + obj.pos[1], p[2] + obj.pos[2]];
-        // bob
         p[1] += Math.sin(time * 1.2 + obj.phase) * 0.08;
         return p;
       });
 
-      // camera verts
-      const camVerts = worldVerts.map(v => toCam(v, view));
-
-      // project verts once
+      const camVerts  = worldVerts.map(v => toCam(v, view));
       const projVerts = camVerts.map(project);
 
       for (const face of obj.faces) {
-        // backface cull using camera-space normal
-        const i0 = face[0], i1 = face[1], i2 = face[2];
-        const a = worldVerts[i0], b = worldVerts[i1], c = worldVerts[i2];
-
+        const a = worldVerts[face[0]], b = worldVerts[face[1]], c = worldVerts[face[2]];
         const n = norm(cross(sub(b, a), sub(c, a)));
-
-        // outward test: dot(n, faceCenter - camPos) < 0
-        // approximate with view direction from cam to face center
         const center = [
           (a[0]+b[0]+c[0]) / 3,
           (a[1]+b[1]+c[1]) / 3,
@@ -518,7 +452,6 @@
         const toCamVec = norm(sub(view.eye, center));
         if (dot(n, toCamVec) <= 0.02) continue;
 
-        // are all projected?
         let ok = true;
         const pts = [];
         let zSum = 0;
@@ -531,23 +464,17 @@
         if (!ok) continue;
 
         const avgZ = zSum / face.length;
-
-        // lighting
-        const ndl = Math.max(0, dot(n, LIGHT));
-        const lit = 0.22 + 0.78 * ndl;
-
-        // fog
-        const fog = Math.min(1, Math.max(0, (avgZ - 4) / 9));
+        const ndl  = Math.max(0, dot(n, LIGHT));
+        const lit  = 0.22 + 0.78 * ndl;
+        const fog  = Math.min(1, Math.max(0, (avgZ - 4) / 9));
         const alpha = (1 - fog) * (0.35 + 0.55 * lit);
 
         draws.push({ pts, avgZ, lit, alpha });
       }
     }
 
-    // sort back to front
     draws.sort((a, b) => b.avgZ - a.avgZ);
 
-    // draw
     ctx.lineJoin = 'round';
     for (const d of draws) {
       ctx.beginPath();
@@ -557,20 +484,18 @@
 
       if (!cam.wireframe) {
         ctx.globalAlpha = d.alpha;
-        ctx.fillStyle = currentAccentLocal;
+        ctx.fillStyle = accent;
         ctx.fill();
       }
 
-      // stroke
       ctx.globalAlpha = Math.min(1, 0.35 + d.lit * 0.65);
-      ctx.strokeStyle = currentAccentLocal;
+      ctx.strokeStyle = accent;
       ctx.lineWidth = cam.wireframe ? 1.6 : 1.1;
       ctx.stroke();
 
-      // vertices (only in non-wireframe mode)
       if (!cam.wireframe) {
         ctx.globalAlpha = 0.9;
-        ctx.fillStyle = currentAccentLocal;
+        ctx.fillStyle = accent;
         for (const p of d.pts) {
           ctx.beginPath();
           ctx.arc(p.x, p.y, 1.6, 0, Math.PI * 2);
@@ -584,9 +509,4 @@
   };
 
   requestAnimationFrame(frame);
-
-  // Expose setAccent so theme changes update immediately.
-  window.__vexpolyScene = {
-    setAccent(c) { currentAccentLocal = c; }
-  };
 })();

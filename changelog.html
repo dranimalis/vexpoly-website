@@ -70,8 +70,9 @@
     </p>
     <h1 class="display" data-reveal>Release history.</h1>
     <p class="section-lede" data-reveal>
-      Every notable change since v3.0.0. Full commit history lives on
-      <a href="https://github.com/dranimalis/vexpoly" target="_blank" rel="noopener" style="color:var(--accent)">GitHub</a>.
+      Release notes are based on the game's repository changelog and recorded release commits.
+      See the <a href="https://github.com/dranimalis/vexpoly/blob/main/CHANGELOG.md" target="_blank" rel="noopener" style="color:var(--accent)">source changelog</a> or
+      <a href="https://github.com/dranimalis/vexpoly/releases" target="_blank" rel="noopener" style="color:var(--accent)">GitHub Releases</a> for the original records.
     </p>
   </div>
 </section>
@@ -87,30 +88,30 @@
           <span class="release-tag is-latest">Latest</span>
         </div>
         <ul class="release-list">
-          <li><span class="kind">Build</span> First release with pre-built binaries for Windows 10+, macOS Intel and Apple Silicon, and Linux x86_64.</li>
-          <li><span class="kind">Build</span> Added the Windows executable, two macOS ZIPs, and Linux AppImage.</li>
-          <li><span class="kind">Verify</span> Added <code>SHA-256SUMS</code> to verify downloaded files.</li>
+          <li><span class="kind">Build</span> Added standalone release builds for Windows, macOS Intel, macOS Apple Silicon, and Linux x86_64.</li>
+          <li><span class="kind">Build</span> Added a PyInstaller one-file build specification and packaged runtime assets for installed distributions.</li>
+          <li><span class="kind">Test</span> Added checks for installed asset discovery and settings persistence/migration.</li>
+          <li><span class="kind">Verify</span> Published platform binaries with a <code>SHA-256SUMS</code> checksum file.</li>
         </ul>
       </article>
 
       <article class="release">
         <div class="release-head">
           <h3 class="release-ver">v3.4.1</h3>
-          <span class="release-date">2026.10.13</span>
         </div>
         <ul class="release-list">
           <li><span class="kind fix">Fix</span> Clamped sky projection at extreme camera pitch to prevent full-screen flashes.</li>
-          <li><span class="kind fix">Fix</span> Capped ground subdivision and tightened its distance and area thresholds.</li>
+          <li><span class="kind fix">Fix</span> Limited recursive ground subdivision and tightened its distance and area thresholds.</li>
           <li><span class="kind">Render</span> Culls off-screen polygons before sorting and drawing.</li>
-          <li><span class="kind perf">Perf</span> Caches scaled blob shadows and reuses gradients at native render scale.</li>
-          <li><span class="kind">Render</span> Corrected bloom to use a bright-pass and reduced distant outline passes.</li>
+          <li><span class="kind perf">Perf</span> Caches scaled blob shadows and reuses sky/grade gradients at native render scale.</li>
+          <li><span class="kind">Render</span> Uses a bright-pass bloom implementation and reduces distant outline passes.</li>
+          <li><span class="kind perf">Perf</span> Clears the render queue in place instead of replacing the list each frame.</li>
         </ul>
       </article>
 
       <article class="release">
         <div class="release-head">
           <h3 class="release-ver">v3.4.0</h3>
-          <span class="release-date">2026.07.19</span>
         </div>
         <ul class="release-list">
           <li><span class="kind">Added</span> Borderless fullscreen toggled with <kbd>F11</kbd>.</li>
@@ -123,7 +124,6 @@
       <article class="release">
         <div class="release-head">
           <h3 class="release-ver">v3.3.2</h3>
-          <span class="release-date">2026.06.04</span>
         </div>
         <ul class="release-list">
           <li><span class="kind fix">Fix</span> Uses consistent default font rendering across platforms.</li>
@@ -145,7 +145,6 @@
       <article class="release">
         <div class="release-head">
           <h3 class="release-ver">v3.3.0</h3>
-          <span class="release-date">2026.04.22</span>
         </div>
         <ul class="release-list">
           <li><span class="kind fix">Fix</span> Polygon budget now keeps the closest polygons.</li>
@@ -157,7 +156,6 @@
       <article class="release">
         <div class="release-head">
           <h3 class="release-ver">v3.2.0</h3>
-          <span class="release-date">2026.02.11</span>
         </div>
         <ul class="release-list">
           <li><span class="kind">Added</span> Adaptive render scale and polygon budget driven by a rolling frame average.</li>
@@ -170,7 +168,6 @@
       <article class="release">
         <div class="release-head">
           <h3 class="release-ver">v3.0.0</h3>
-          <span class="release-date">2025.10.18</span>
         </div>
         <ul class="release-list">
           <li><span class="kind">Render</span> Introduced the custom software-rendering pipeline: camera transform, near clipping, perspective projection, backface culling, texture sampling, and depth sorting.</li>
